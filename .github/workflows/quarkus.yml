@@ -163,6 +163,23 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
+      - name: Dump cgroup and mount info
+        if: startsWith(matrix.os-name, 'ubuntu')
+        run: |
+          echo "=== uname -a ==="
+          uname -a || true
+          echo "=== mount | grep cgroup ==="
+          mount | grep cgroup || true
+          echo "=== /proc/cgroups ==="
+          cat /proc/cgroups || true
+          echo "=== /proc/self/cgroup ==="
+          cat /proc/self/cgroup || true
+          echo "=== /proc/self/mountinfo ==="
+          cat /proc/self/mountinfo || true
+          echo "=== /sys/fs/cgroup/cgroup.controllers ==="
+          cat /sys/fs/cgroup/cgroup.controllers || true
+          echo "=== ls -la /sys/fs/cgroup ==="
+          ls -la /sys/fs/cgroup || true
       - name: Build with Maven
         if: startsWith(matrix.os-name, 'ubuntu')
         env:
