@@ -45,7 +45,7 @@ on:
     paths:
       - '.github/workflows/quarkus.yml'
   schedule:
-  - cron: '0 3 * * 1'
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 env:
@@ -69,51 +69,51 @@ jobs:
     outputs:
       matrix: ${{ steps.read.outputs.matrix }}
     steps:
-    - name: Checkout oracle/graal
-      uses: actions/checkout@v4
-    - name: Build GraalVM JDK
-      uses: ./.github/actions/build-graalvm
-      with:
-        java-version: ${{ env.QUARKUS_JAVA_VERSION }}
-    - name: Get latest Quarkus release
-      run: |
-        export QUARKUS_VERSION=main #$(curl https://repo1.maven.org/maven2/io/quarkus/quarkus-bom/maven-metadata.xml | awk -F"[<>]" '/latest/ {print $3}')
-        echo Getting Quarkus $QUARKUS_VERSION
-        curl --output quarkus.tgz -sL https://api.github.com/repos/quarkusio/quarkus/tarball/$QUARKUS_VERSION
-        mkdir ${QUARKUS_PATH}
-        tar xf quarkus.tgz -C ${QUARKUS_PATH} --strip-components=1
-    - uses: actions/cache@v4
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-    - name: Tar GraalVM JDK
-      shell: bash
-      run: tar -czvhf graalvm.tgz -C $(dirname ${GRAALVM_HOME}) $(basename ${GRAALVM_HOME})
-    - name: Persist GraalVM JDK build
-      uses: actions/upload-artifact@v4
-      with:
-        name: graalvm
-        path: graalvm.tgz
-    - name: Build Quarkus
-      run: |
-        cd ${QUARKUS_PATH}
-        eval ./mvnw -e -B -Dquickly
-    - name: Read json file with native-tests matrix
-      id: read
-      run: |
-        json=$(tr -d '\n' < ${QUARKUS_PATH}/.github/native-tests.json )
-        echo $json
-        echo "matrix=${json}" >> $GITHUB_OUTPUT
-    - name: Tar Maven Repo
-      shell: bash
-      run: tar -czvf maven-repo.tgz -C ~ .m2/repository
-    - name: Persist Maven Repo
-      uses: actions/upload-artifact@v4
-      with:
-        name: maven-repo
-        path: maven-repo.tgz
+      - name: Checkout oracle/graal
+        uses: actions/checkout@v4
+      - name: Build GraalVM JDK
+        uses: ./.github/actions/build-graalvm
+        with:
+          java-version: ${{ env.QUARKUS_JAVA_VERSION }}
+      - name: Get latest Quarkus release
+        run: |
+          export QUARKUS_VERSION=main #$(curl https://repo1.maven.org/maven2/io/quarkus/quarkus-bom/maven-metadata.xml | awk -F"[<>]" '/latest/ {print $3}')
+          echo Getting Quarkus $QUARKUS_VERSION
+          curl --output quarkus.tgz -sL https://api.github.com/repos/quarkusio/quarkus/tarball/$QUARKUS_VERSION
+          mkdir ${QUARKUS_PATH}
+          tar xf quarkus.tgz -C ${QUARKUS_PATH} --strip-components=1
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Tar GraalVM JDK
+        shell: bash
+        run: tar -czvhf graalvm.tgz -C $(dirname ${GRAALVM_HOME}) $(basename ${GRAALVM_HOME})
+      - name: Persist GraalVM JDK build
+        uses: actions/upload-artifact@v4
+        with:
+          name: graalvm
+          path: graalvm.tgz
+      - name: Build Quarkus
+        run: |
+          cd ${QUARKUS_PATH}
+          eval ./mvnw -e -B -Dquickly
+      - name: Read json file with native-tests matrix
+        id: read
+        run: |
+          json=$(tr -d '\n' < ${QUARKUS_PATH}/.github/native-tests.json )
+          echo $json
+          echo "matrix=${json}" >> $GITHUB_OUTPUT
+      - name: Tar Maven Repo
+        shell: bash
+        run: tar -czvf maven-repo.tgz -C ~ .m2/repository
+      - name: Persist Maven Repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-repo
+          path: maven-repo.tgz
 
   native-tests:
     name: Native Tests - ${{matrix.category}}
